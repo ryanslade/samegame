@@ -8,20 +8,21 @@
          valid-pos?
          pos)
 
-(define board-width 10)
-(define board-height 10)
-(define scene-width 400)
-(define scene-height 400)
-(define piece-radius 20)
-(define tick-seconds 2)
+(define board-width 20)
+(define board-height 20)
+(define window-width 600)
+(define window-height 600)
+(define piece-radius (/ window-width board-width 2))
+(define tick-seconds (/ 1 28))
 
 ; 0 is blank
 (define piece-colors
-  (hash 1 'red
+  (hash 0 'white
+        1 'red
         2 'blue
         3 'orange))
 
-(define num-colors (hash-count piece-colors))
+(define num-colors (sub1 (hash-count piece-colors)))
 (define (random-color) (add1 (random num-colors)))
 
 (struct pos (x y) #:transparent)
@@ -50,7 +51,8 @@
       ; Any other row
       [else (loop (append new-board (list (list-ref board yy))) (add1 yy))])))
 
-(define (get-pos board p)
+; Get the value at the board position p
+(define (get-value board p)
   (list-ref (list-ref board (pos-y p)) (pos-x p)))
 
 ; Checks that a position is within the bounds of the board
@@ -87,6 +89,11 @@
     (if (= count (* board-width board-height)) board
         (loop (set-pos board (count-to-pos count) (random-color)) (add1 count)))))
 
+(define (pos-from-xy board x y)
+  (pos 
+   (quotient x (* 2 piece-radius)) 
+   (quotient y (* 2 piece-radius))))
+
 ; World stuff
 
 ; value is a number mapping to a color in the
@@ -94,24 +101,29 @@
 (define (board-piece value) 
   (circle piece-radius 'solid (hash-ref piece-colors value)))
 
+; Given a board position, either x or y, return the pixel position
+(define (pixel-pos board-pos)
+  (+ piece-radius (* board-pos (* 2 piece-radius))))
+
 (define (render world)
-  (let loop ([scene (empty-scene scene-width scene-height)] [count 0])
+  (let loop ([scene (empty-scene window-width window-height)] [count 0])
     (if (= count (* board-width board-height)) scene
         (loop
          (let ([p (count-to-pos count)])
-           (place-image (board-piece (get-pos world (count-to-pos count))) 
-                        (+ piece-radius (* (pos-x p) (* 2 piece-radius))) 
-                        (+ piece-radius (* (pos-y p) (* 2 piece-radius))) 
+           (place-image (board-piece (get-value world (count-to-pos count)))
+                        (pixel-pos (pos-x p))
+                        (pixel-pos (pos-y p)) 
                         scene)) 
          (add1 count)))))
 
 (define (handle-click board x y ev)
-  (if (symbol=? ev 'button-up) (new-board) board))
+  (if (symbol=? ev 'button-up) 
+      (set-pos board (pos-from-xy board x y) 0) 
+      board))
 
-(big-bang scene-width scene-height tick-seconds (new-board))
+(big-bang window-width window-height tick-seconds (new-board))
 
 ;(on-tick-event automatic-closer)
 ;(on-key-event door-actions)
 (on-redraw render)
 (on-mouse-event handle-click)
-
