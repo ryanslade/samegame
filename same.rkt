@@ -75,6 +75,16 @@
              (pos x (add1 y))
              (pos x (sub1 y))))))
 
+(define (color-neighbors board p)
+  (let ([value (get-value board p)])
+    (filter (lambda (x) (= value (get-value board x))) (neighbors board p))))
+
+; Given a position, get pieces connected that are the same colour
+(define (connected board p)
+  (let ([value (get-value board p)])
+    (if (= value 0) empty
+        (set-add (color-neighbors board p) p))))
+
 ; Get a pos by index into the board.
 ; 0  -> (pos 0 0)
 ; 10 -> (pos 0 1)
@@ -116,9 +126,14 @@
                         scene)) 
          (add1 count)))))
 
+
 (define (handle-click board x y ev)
-  (if (symbol=? ev 'button-up) 
-      (set-pos board (pos-from-xy board x y) 0) 
+  (if (symbol=? ev 'button-up)
+      (if (= 1 (set-count (connected board (pos-from-xy board x y)))) 
+          board 
+          (let loop ([pieces (connected board (pos-from-xy board x y))] [board board])
+            (if (set-empty? pieces) board
+                (loop (rest pieces) (set-pos board (first pieces) 0)))))
       board))
 
 (big-bang window-width window-height tick-seconds (new-board))
