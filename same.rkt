@@ -79,16 +79,21 @@
   (let ([value (get-value board p)])
     (filter (lambda (x) (= value (get-value board x))) (neighbors board p))))
 
+(define (color-neighbors-and-self-set board p)
+  (list->set (append (list p) (color-neighbors board p))))
+
 ; Given a position, get pieces connected that are the same colour
 (define (connected board p)
   (let ([value (get-value board p)])
-    (if (= value 0) empty
-        (set-add (color-neighbors board p) p))))
+    (let loop ([seen (color-neighbors-and-self-set board p)])      
+      (let ([next (apply set-union (set-map seen (lambda (p) (color-neighbors-and-self-set board p))))])
+        (if (set=? seen next) next
+            (loop next))))))
 
 ; Get a pos by index into the board.
 ; 0  -> (pos 0 0)
 ; 10 -> (pos 0 1)
-; etc
+; e
 (define (count-to-pos count)
   (pos (modulo count board-width) (quotient count board-height)))
 
@@ -99,12 +104,10 @@
     (if (= count (* board-width board-height)) board
         (loop (set-pos board (count-to-pos count) (random-color)) (add1 count)))))
 
-(define (pos-from-xy board x y)
+(define (pos-from-xy x y)
   (pos 
    (quotient x (* 2 piece-radius)) 
    (quotient y (* 2 piece-radius))))
-
-; World stuff
 
 ; value is a number mapping to a color in the
 ; colors hash
@@ -129,16 +132,14 @@
 
 (define (handle-click board x y ev)
   (if (symbol=? ev 'button-up)
-      (if (= 1 (set-count (connected board (pos-from-xy board x y)))) 
+      (if (= 1 (set-count (connected board (pos-from-xy x y)))) 
           board 
-          (let loop ([pieces (connected board (pos-from-xy board x y))] [board board])
+          (let loop ([pieces (connected board (pos-from-xy x y))] [board board])
             (if (set-empty? pieces) board
-                (loop (rest pieces) (set-pos board (first pieces) 0)))))
+                (loop (set-rest pieces) (set-pos board (set-first pieces) 0)))))
       board))
 
 (big-bang window-width window-height tick-seconds (new-board))
 
-;(on-tick-event automatic-closer)
-;(on-key-event door-actions)
 (on-redraw render)
 (on-mouse-event handle-click)
