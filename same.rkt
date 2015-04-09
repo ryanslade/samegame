@@ -6,6 +6,10 @@
          make-empty-board
          neighbors
          valid-pos?
+         get-column
+         collapse-column
+         swap-rows-columns
+         collapse-board
          pos)
 
 (define board-width 20)
@@ -20,7 +24,8 @@
   (hash 0 'white
         1 'red
         2 'blue
-        3 'orange))
+        3 'orange
+        ))
 
 (define num-colors (sub1 (hash-count piece-colors)))
 (define (random-color) (add1 (random num-colors)))
@@ -64,6 +69,22 @@
          (< y (length board))
          (< x (length (list-ref board 0))))))
 
+(define (get-column board column)
+  (map (lambda (x) (list-ref x column)) board))
+
+; Remove zeros from a column and place them at the end.
+(define (collapse-column column)
+  (let-values ([(z nz) (partition zero? column)]) (append z nz)))
+
+; Swaps rows with columns
+(define (swap-rows-columns board)
+  (map (lambda (n) (get-column board n)) (range (length board))))
+
+(define (collapse-board board) 
+  (swap-rows-columns 
+   (map collapse-column ; Rename this? 
+        (swap-rows-columns board))))
+
 ; Get positions of neighbors
 (define (neighbors board p)
   (let ([x (pos-x p)]
@@ -86,7 +107,10 @@
 (define (connected board p)
   (let ([value (get-value board p)])
     (let loop ([seen (color-neighbors-and-self-set board p)])      
-      (let ([next (apply set-union (set-map seen (lambda (p) (color-neighbors-and-self-set board p))))])
+      (let ([next 
+             (apply set-union 
+                    (set-map seen 
+                             (lambda (p) (color-neighbors-and-self-set board p))))])
         (if (set=? seen next) next
             (loop next))))))
 
@@ -133,13 +157,12 @@
 (define (handle-click board x y ev)
   (if (symbol=? ev 'button-up)
       (if (= 1 (set-count (connected board (pos-from-xy x y)))) 
-          board 
+          board
           (let loop ([pieces (connected board (pos-from-xy x y))] [board board])
-            (if (set-empty? pieces) board
+            (if (set-empty? pieces) (collapse-board board)
                 (loop (set-rest pieces) (set-pos board (set-first pieces) 0)))))
       board))
 
 (big-bang window-width window-height tick-seconds (new-board))
-
 (on-redraw render)
 (on-mouse-event handle-click)
