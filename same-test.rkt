@@ -26,15 +26,21 @@
 (check-equal? (length (neighbors eb (pos 0 0))) 2)
 (check-equal? (length (neighbors eb (pos 9 9))) 2)
 
-; valid-pos?
-(check-true (valid-pos? eb (pos 0 0)))
+(test-case
+ "valid-pos?"
+ (check-true (valid-pos? eb (pos 0 0)))
+ (check-false (valid-pos? eb (pos -1 0)))
+ (check-false (valid-pos? eb (pos 0 -1)))
+ (check-true (valid-pos? eb (pos 1 1))))
 
 (check-equal? (get-column test-board 0) '(11 12 13 14 15))
 
-(check-equal? (collapse-column '(0 1 2 3 4)) '(0 1 2 3 4))
-(check-equal? (collapse-column '(1 2 3 4 5)) '(1 2 3 4 5))
-(check-equal? (collapse-column '(1 0 3 0 5)) '(0 0 1 3 5))
-(check-equal? (collapse-column '(0 0 0 0 0)) '(0 0 0 0 0))
+(test-case 
+ "collapse-column"
+ (check-equal? (collapse-column '(0 1 2 3 4)) '(0 1 2 3 4))
+ (check-equal? (collapse-column '(1 2 3 4 5)) '(1 2 3 4 5))
+ (check-equal? (collapse-column '(1 0 3 0 5)) '(0 0 1 3 5))
+ (check-equal? (collapse-column '(0 0 0 0 0)) '(0 0 0 0 0)))
 
 (check-equal? (swap-rows-columns  '((11 12 13 14 15) 
                                     (21 22 23 24 25)

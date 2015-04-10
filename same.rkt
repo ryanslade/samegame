@@ -11,6 +11,8 @@
          swap-rows-columns
          collapse-board
          shift-empty-columns
+         start-game
+         
          pos)
 
 (define board-width 20)
@@ -65,8 +67,8 @@
 (define (valid-pos? board p)
   (let ([x (pos-x p)]
         [y (pos-y p)])
-    (and (or (positive? x) (zero? x)) 
-         (or (positive? y) (zero? y))
+    (and (not (negative? x)) 
+         (not (negative? y))
          (< y (length board))
          (< x (length (list-ref board 0))))))
 
@@ -91,7 +93,7 @@
   (swap-rows-columns
    (let-values 
        ([(z nz) (partition (lambda (r) (andmap zero? r)) (swap-rows-columns board))]) 
-        (append nz z)))) 
+     (append nz z)))) 
 
 ; Get positions of neighbors
 (define (neighbors board p)
@@ -172,6 +174,7 @@
                 (loop (set-rest pieces) (set-pos board (set-first pieces) 0)))))
       board))
 
-(big-bang window-width window-height tick-seconds (new-board))
-(on-redraw render)
-(on-mouse-event handle-click)
+(define (start-game) 
+  (big-bang window-width window-height tick-seconds (new-board))
+  (on-redraw render)
+  (on-mouse-event handle-click))
