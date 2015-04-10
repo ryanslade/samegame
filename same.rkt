@@ -10,6 +10,7 @@
          collapse-column
          swap-rows-columns
          collapse-board
+         shift-empty-columns
          pos)
 
 (define board-width 20)
@@ -85,6 +86,13 @@
    (map collapse-column ; Rename this? 
         (swap-rows-columns board))))
 
+; Shift pieces to the right of an empty column left
+(define (shift-empty-columns board) board
+  (swap-rows-columns
+   (let-values 
+       ([(z nz) (partition (lambda (r) (andmap zero? r)) (swap-rows-columns board))]) 
+        (append nz z)))) 
+
 ; Get positions of neighbors
 (define (neighbors board p)
   (let ([x (pos-x p)]
@@ -121,7 +129,7 @@
 (define (count-to-pos count)
   (pos (modulo count board-width) (quotient count board-height)))
 
-;; create a new board, randomly populated
+; create a new board, randomly populated
 (define (new-board) 
   (let loop ([board (make-empty-board board-width board-height)]
              [count 0])
@@ -159,7 +167,8 @@
       (if (= 1 (set-count (connected board (pos-from-xy x y)))) 
           board
           (let loop ([pieces (connected board (pos-from-xy x y))] [board board])
-            (if (set-empty? pieces) (collapse-board board)
+            (if (set-empty? pieces) 
+                (shift-empty-columns (collapse-board board))
                 (loop (set-rest pieces) (set-pos board (set-first pieces) 0)))))
       board))
 

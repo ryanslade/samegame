@@ -4,16 +4,16 @@
          "same.rkt")
 
 (define test-board '((11 21 31 41 51)
-					 (12 22 32 42 52)
-					 (13 23 33 43 53)
-					 (14 24 34 44 54)
-					 (15 25 35 45 55)))
+                     (12 22 32 42 52)
+                     (13 23 33 43 53)
+                     (14 24 34 44 54)
+                     (15 25 35 45 55)))
 
 (define empty-row (list 0 0 0 0 0))
 (define eb (make-empty-board 10 10))
 
 (check-equal? (set-x empty-row 0 1)
-		 	  '(1 0 0 0 0))
+              '(1 0 0 0 0))
 
 (check-equal? (set-x empty-row 4 1) 
               '(0 0 0 0 1))
@@ -45,16 +45,30 @@
 (check-equal? (swap-rows-columns (swap-rows-columns test-board)) test-board)
 
 (define collapsible-board '((11 21 31 41 0)
-					        (12 22 32 0  52)
-					        (0  23 33 43 53)
-					        (14 0  34 0  54)
-					        (15 0  35 45 55)))
+                            (12 22 32 0  52)
+                            (0  23 33 43 53)
+                            (14 0  34 0  54)
+                            (15 0  35 45 55)))
 
 (define collapsed-board   '((0  0  31 0  0)
-					        (11 0  32 0  52)
-					        (12 21 33 41 53)
-					        (14 22 34 43 54)
-					        (15 23 35 45 55)))
+                            (11 0  32 0  52)
+                            (12 21 33 41 53)
+                            (14 22 34 43 54)
+                            (15 23 35 45 55)))
 
 (check-equal? (collapse-board collapsible-board) collapsed-board)
+
+(check-equal? (shift-empty-columns 
+               '((1 1 1 0 1)
+                 (1 1 1 0 1)
+                 (1 1 1 0 1)
+                 (1 1 1 0 1)
+                 (1 1 1 0 1)))
+              
+              '((1 1 1 1 0)
+                (1 1 1 1 0)
+                (1 1 1 1 0)
+                (1 1 1 1 0)
+                (1 1 1 1 0)))
+
 
