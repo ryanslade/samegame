@@ -3,6 +3,18 @@
 (require rackunit
          "same.rkt")
 
+(require/expose "same.rkt" 
+                (make-empty-board
+                 set-x
+                 neighbors
+                 valid-pos?
+                 get-column
+                 collapse-column
+                 swap-rows-columns
+                 collapse-board
+                 shift-empty-columns
+                 pos))
+
 (define test-board '((11 21 31 41 51)
                      (12 22 32 42 52)
                      (13 23 33 43 53)
@@ -22,9 +34,11 @@
               '(0 0 0 0 0))
 
 ; neighbors
-(check-equal? (length (neighbors eb (pos 3 3))) 4)
-(check-equal? (length (neighbors eb (pos 0 0))) 2)
-(check-equal? (length (neighbors eb (pos 9 9))) 2)
+(test-case
+ "neighbors"
+ (check-equal? (length (neighbors eb (pos 3 3))) 4)
+ (check-equal? (length (neighbors eb (pos 0 0))) 2)
+ (check-equal? (length (neighbors eb (pos 9 9))) 2))
 
 (test-case
  "valid-pos?"

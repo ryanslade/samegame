@@ -2,19 +2,6 @@
 
 (require htdp/world)
 
-(provide set-x
-         make-empty-board
-         neighbors
-         valid-pos?
-         get-column
-         collapse-column
-         swap-rows-columns
-         collapse-board
-         shift-empty-columns
-         start-game
-         
-         pos)
-
 (define board-width 20)
 (define board-height 20)
 (define window-width 600)
