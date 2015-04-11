@@ -20,6 +20,7 @@
 (define num-colors (sub1 (hash-count piece-colors)))
 (define (random-color) (add1 (random num-colors)))
 
+(struct game (board score) #:transparent)
 (struct pos (x y) #:transparent)
 
 ; Make a board of all zeros
@@ -139,29 +140,29 @@
 (define (pixel-pos board-pos)
   (+ piece-radius (* board-pos (* 2 piece-radius))))
 
-(define (render world)
+(define (render game-state)
   (let loop ([scene (empty-scene window-width window-height)] [count 0])
     (if (= count (* board-width board-height)) scene
         (loop
          (let ([p (count-to-pos count)])
-           (place-image (board-piece (get-value world (count-to-pos count)))
+           (place-image (board-piece (get-value (game-board game-state) (count-to-pos count)))
                         (pixel-pos (pos-x p))
                         (pixel-pos (pos-y p)) 
                         scene)) 
          (add1 count)))))
 
 
-(define (handle-click board x y ev)
+(define (handle-click game-state x y ev)
   (if (symbol=? ev 'button-up)
-      (if (= 1 (set-count (connected board (pos-from-xy x y)))) 
-          board
-          (let loop ([pieces (connected board (pos-from-xy x y))] [board board])
+      (if (= 1 (set-count (connected (game-board game-state) (pos-from-xy x y)))) 
+          game-state
+          (let loop ([pieces (connected (game-board game-state) (pos-from-xy x y))] [board (game-board game-state)])
             (if (set-empty? pieces) 
-                (shift-empty-columns (collapse-board board))
+                (game (shift-empty-columns (collapse-board board)) 0)
                 (loop (set-rest pieces) (set-pos board (set-first pieces) 0)))))
-      board))
+      game-state))
 
 (define (start-game) 
-  (big-bang window-width window-height tick-seconds (new-board))
+  (big-bang window-width window-height tick-seconds (game (new-board) 0))
   (on-redraw render)
   (on-mouse-event handle-click))
