@@ -5,7 +5,9 @@
 (define board-width 20)
 (define board-height 20)
 (define window-width 600)
-(define window-height 600)
+(define window-height 640)
+(define score-height 20)
+(define game-height (- window-height score-height))
 (define piece-radius (/ window-width board-width 2))
 (define tick-seconds (/ 1 28))
 
@@ -142,7 +144,8 @@
 
 (define (render game-state)
   (let loop ([scene (empty-scene window-width window-height)] [count 0])
-    (if (= count (* board-width board-height)) scene
+    (if (= count (* board-width board-height))
+        (place-image (text (number->string (game-score game-state)) score-height 'black) 0 600 scene)
         (loop
          (let ([p (count-to-pos count)])
            (place-image (board-piece (get-value (game-board game-state) (count-to-pos count)))
@@ -151,15 +154,19 @@
                         scene)) 
          (add1 count)))))
 
+(define (score-from-pieces piece-count)
+  (* piece-count piece-count))
 
 (define (handle-click game-state x y ev)
   (if (symbol=? ev 'button-up)
-      (if (= 1 (set-count (connected (game-board game-state) (pos-from-xy x y)))) 
+      (let ([connected-pieces (connected (game-board game-state) (pos-from-xy x y))]
+            [old-score (game-score game-state)]) 
+      (if (= 1 (set-count connected-pieces)) 
           game-state
-          (let loop ([pieces (connected (game-board game-state) (pos-from-xy x y))] [board (game-board game-state)])
+          (let loop ([pieces connected-pieces] [board (game-board game-state)])
             (if (set-empty? pieces) 
-                (game (shift-empty-columns (collapse-board board)) 0)
-                (loop (set-rest pieces) (set-pos board (set-first pieces) 0)))))
+                (game (shift-empty-columns (collapse-board board)) (+ old-score (score-from-pieces (set-count connected-pieces))))
+                (loop (set-rest pieces) (set-pos board (set-first pieces) 0))))))
       game-state))
 
 (define (start-game) 
