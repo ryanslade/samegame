@@ -11,7 +11,6 @@
 (define piece-radius (/ window-width board-width 2))
 (define tick-seconds (/ 1 28))
 
-; 0 is blank
 (define piece-colors
   (hash 0 'white
         1 'red
@@ -106,13 +105,14 @@
 ; Given a position, get pieces connected that are the same colour
 (define (connected board p)
   (let ([value (get-value board p)])
-    (let loop ([seen (color-neighbors-and-self-set board p)])      
-      (let ([next 
-             (apply set-union 
-                    (set-map seen 
-                             (lambda (p) (color-neighbors-and-self-set board p))))])
-        (if (set=? seen next) next
-            (loop next))))))
+    (if (zero? value) (set)
+        (let loop ([seen (color-neighbors-and-self-set board p)])      
+          (let ([next 
+                 (apply set-union 
+                        (set-map seen 
+                                 (lambda (p) (color-neighbors-and-self-set board p))))])
+            (if (set=? seen next) next
+                (loop next)))))))
 
 ; Get a pos by index into the board.
 ; 0  -> (pos 0 0)
@@ -161,12 +161,15 @@
   (if (symbol=? ev 'button-up)
       (let ([connected-pieces (connected (game-board game-state) (pos-from-xy x y))]
             [old-score (game-score game-state)]) 
-      (if (= 1 (set-count connected-pieces)) 
-          game-state
-          (let loop ([pieces connected-pieces] [board (game-board game-state)])
-            (if (set-empty? pieces) 
-                (game (shift-empty-columns (collapse-board board)) (+ old-score (score-from-pieces (set-count connected-pieces))))
-                (loop (set-rest pieces) (set-pos board (set-first pieces) 0))))))
+        (if (= 1 (set-count connected-pieces)) 
+            game-state
+            (let loop ([pieces connected-pieces] [board (game-board game-state)])
+              (if (set-empty? pieces) 
+                  (game 
+                   (shift-empty-columns (collapse-board board)) 
+                   (+ old-score (score-from-pieces (set-count connected-pieces))))
+                  
+                  (loop (set-rest pieces) (set-pos board (set-first pieces) 0))))))
       game-state))
 
 (define (start-game) 
