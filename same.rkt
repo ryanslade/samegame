@@ -29,24 +29,13 @@
   (build-list height (lambda (n) (make-list width 0))))
 
 ; Set the position at x to the val returning a new list
-(define (set-x lst x val)
+(define (list-update lst x val)
   (append (take lst x) (list val) (drop lst (add1 x))))
 
 ; Set the position at x,y to value
 ; Top left is considered 0, 0
-(define (set-pos board pos val)
-  ; new-board is the new board so far
-  ; yy is our current y position through the old board
-  (let loop ([new-board empty] [yy 0])
-    (cond
-      ; Done
-      [(= yy (length board)) new-board]
-      ; The row we need to modify
-      [(= yy (pos-y pos)) 
-       (let ([old-row (list-ref board yy)]) 
-         (loop (append new-board (list (set-x old-row (pos-x pos) val))) (add1 yy)))]
-      ; Any other row
-      [else (loop (append new-board (list (list-ref board yy))) (add1 yy))])))
+(define (set-pos board p val)
+  (list-update board (pos-y p) (list-update (list-ref board (pos-y p)) (pos-x p) val)))
 
 ; Get the value at the board position p
 (define (get-value board p)

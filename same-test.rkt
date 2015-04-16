@@ -5,7 +5,7 @@
 
 (require/expose "same.rkt" 
                 (make-empty-board
-                 set-x
+                 list-update
                  neighbors
                  valid-pos?
                  get-column
@@ -24,13 +24,13 @@
 (define empty-row (list 0 0 0 0 0))
 (define eb (make-empty-board 10 10))
 
-(check-equal? (set-x empty-row 0 1)
+(check-equal? (list-update empty-row 0 1)
               '(1 0 0 0 0))
 
-(check-equal? (set-x empty-row 4 1) 
+(check-equal? (list-update empty-row 4 1) 
               '(0 0 0 0 1))
 
-(check-equal? (set-x empty-row 0 0)
+(check-equal? (list-update empty-row 0 0)
               '(0 0 0 0 0))
 
 ; neighbors
